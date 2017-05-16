@@ -209,6 +209,7 @@ type functionIndex struct {
 type timerIndex struct {
 	c float64
 	sync.Mutex
+    sync.WaitGroup
 }
 
 func (t *timerIndex) get() float64 {

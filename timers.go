@@ -27,6 +27,10 @@ func (d *Context) PushTimers() error {
 	}
 }
 
+func (d *Context) WaitTimers() {
+	d.timerIndex.Wait()
+}
+
 func (d *Context) FlushTimers() {
 	d.PushGlobalStash()
 	d.PushObject()
@@ -40,7 +44,10 @@ func setTimeout(c *Context) int {
 	if timeout < 1 {
 		timeout = 1
 	}
+	d.timerIndex.Add(1)
 	go func(id float64) {
+		defer d.timerIndex.Done()
+
 		<-time.After(time.Duration(timeout) * time.Millisecond)
 		c.Lock()
 		defer c.Unlock()
@@ -74,7 +81,10 @@ func setInterval(c *Context) int {
 	if timeout < 1 {
 		timeout = 1
 	}
+	d.timerIndex.Add(1)
 	go func(id float64) {
+		defer d.timerIndex.Done()
+
 		ticker := time.NewTicker(time.Duration(timeout) * time.Millisecond)
 		for _ = range ticker.C {
 			c.Lock()
